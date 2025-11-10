@@ -1,3 +1,4 @@
+warn("ha")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -22,43 +23,61 @@ end
 
 function OrionLib:SetTheme(name)
     self.SelectedTheme = name
-    local colors = self.Themes[name]
-    if not colors then return end
+    local theme = self.Themes[name]
     for _, obj in pairs(self.ThemeObjects) do
         if obj.Type and obj.Instance then
-            if obj.Type == "Main" and obj.Instance.BackgroundColor3 then obj.Instance.BackgroundColor3 = colors.Main end
-            if obj.Type == "Second" and obj.Instance.BackgroundColor3 then obj.Instance.BackgroundColor3 = colors.Second end
-            if obj.Type == "Stroke" and obj.Instance.StrokeColor3 then obj.Instance.StrokeColor3 = colors.Stroke end
-            if obj.Type == "Divider" and obj.Instance.BackgroundColor3 then obj.Instance.BackgroundColor3 = colors.Divider end
-            if obj.Type == "Text" and obj.Instance.TextColor3 then obj.Instance.TextColor3 = colors.Text end
-            if obj.Type == "TextDark" and obj.Instance.TextColor3 then obj.Instance.TextColor3 = colors.TextDark end
+            if obj.Type == "Main" and obj.Instance.BackgroundColor3 then
+                obj.Instance.BackgroundColor3 = theme.Main
+            elseif obj.Type == "Second" and obj.Instance.BackgroundColor3 then
+                obj.Instance.BackgroundColor3 = theme.Second
+            elseif obj.Type == "Stroke" and obj.Instance.StrokeColor3 then
+                obj.Instance.StrokeColor3 = theme.Stroke
+            elseif obj.Type == "Divider" and obj.Instance.BackgroundColor3 then
+                obj.Instance.BackgroundColor3 = theme.Divider
+            elseif obj.Type == "Text" and obj.Instance.TextColor3 then
+                obj.Instance.TextColor3 = theme.Text
+            elseif obj.Type == "TextDark" and obj.Instance.TextColor3 then
+                obj.Instance.TextColor3 = theme.TextDark
+            end
         end
     end
 end
 
-function OrionLib:InitDynamicThemes()
-    task.spawn(function()
-        while true do
-            for name, theme in pairs(self.Themes) do
-                if theme.Dynamic then
-                    theme.Hue = (theme.Hue or 0) + 0.002
-                    theme.Hue = theme.Hue % 1
-                    local color = Color3.fromHSV(theme.Hue,1,1)
-                    theme.Main = color
-                    theme.Second = color:Lerp(Color3.new(0,0,0),0.5)
-                    theme.Stroke = color
-                    theme.Divider = color
-                    theme.Text = Color3.new(1,1,1)
-                    theme.TextDark = Color3.fromRGB(200,200,200)
-                end
+
+OrionLib:AddTheme("HeartRainbow", {
+    Main = Color3.fromRGB(0,0,0),
+    Second = Color3.fromRGB(0,0,0),
+    Stroke = Color3.fromRGB(255,255,255),
+    Divider = Color3.fromRGB(255,255,255),
+    Text = Color3.fromRGB(255,255,255),
+    TextDark = Color3.fromRGB(200,200,200),
+    Dynamic = true
+})
+
+OrionLib:SetTheme("HeartRainbow")
+
+task.spawn(function()
+    local t = 0
+    while true do
+        for name, theme in pairs(OrionLib.Themes) do
+            if theme.Dynamic then
+                t = t + 0.02
+                local x = math.sin(t) ^ 3
+                local y = 13*math.cos(t) - 5*math.cos(2*t) - 2*math.cos(3*t) - math.cos(4*t)
+                local hue = (x + 1)/2
+                local sat = 1
+                local val = math.clamp((y + 20)/40, 0, 1)
+                local color = Color3.fromHSV(hue, sat, val)
+                theme.Main = color
+                theme.Second = color:Lerp(Color3.new(0,0,0), 0.5)
+                theme.Stroke = color
+                theme.Divider = color
+                OrionLib:SetTheme(name)
             end
-            if self.SelectedTheme and self.Themes[self.SelectedTheme] then
-                self:SetTheme(self.SelectedTheme)
-            end
-            task.wait(0.02)
         end
-    end)
-end
+        task.wait(0.02)
+    end
+end)
 
 
 
